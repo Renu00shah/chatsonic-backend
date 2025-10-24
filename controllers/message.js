@@ -1,9 +1,10 @@
+import { Chat } from "../model/chat.js";
 import { Message } from "../model/message.js";
 import openai from "../server.js";
 
 export const create = async (req, res) => {
   try {
-    const chatId = req.params;
+    const { chatId } = req.params;
     console.log(chatId);
     const { content } = req.body;
     console.log(content);
@@ -15,13 +16,32 @@ export const create = async (req, res) => {
       });
     }
     const userMessage = await Message.create({ chatId, content });
+    const chat = await Chat.findById(chatId);
+    console.log(chat);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content }],
-    });
+    const messageCount = await Message.countDocuments({ chatId });
+    if (messageCount === 1) {
+      chat.title = content;
+      await chat.save();
+    }
 
-    const aiResponse = completion.choices[0].message.content;
+    let aiResponse;
+    if (/image|photo|picture|draw/i.test(content)) {
+      const imageResponse = await openai.images.generate({
+        model: "gpt-image-1",
+        prompt: content,
+        size: "1024x1024",
+      });
+      aiResponse = imageResponse.data[0].url;
+    } else {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content }],
+      });
+
+      aiResponse = completion.choices[0].message.content;
+    }
+
     await Message.create({ chatId, content: aiResponse, role: "assistant" });
 
     return res.json({

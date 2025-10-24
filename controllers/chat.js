@@ -46,8 +46,16 @@ export const get = async (req, res) => {
 export const getSingle = async (req, res) => {
   try {
     const userId = req.user._id;
-    console.log(userId);
-    const chat = await Chat.findOne({ userId });
+    const { search } = req.query;
+    console.log("search:", search);
+    const filter = search
+      ? {
+          title: { $regex: search, $options: "i" },
+        }
+      : {};
+    console.log("filter:", filter);
+    const chat = await Chat.find({ userId, ...filter });
+    console.log(chat);
     return res.json({
       status: 200,
       success: true,

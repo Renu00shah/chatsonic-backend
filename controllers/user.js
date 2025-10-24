@@ -5,8 +5,8 @@ import jwt from "jsonwebtoken";
 export const register = async (req, res) => {
   try {
     console.log(req.body);
-    const { firstname, lastname, email, password } = req.body;
-    if (!firstname || !lastname || !email || !password) {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
       return res.json({ success: false, message: "all fields are required" });
     }
     const isExist = await User.findOne({ email });
@@ -20,8 +20,7 @@ export const register = async (req, res) => {
     console.log(isExist);
     const hashPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      firstname,
-      lastname,
+      name,
       email,
       password: hashPassword,
     });

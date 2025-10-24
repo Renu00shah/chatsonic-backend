@@ -5,6 +5,7 @@ import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import messageRoute from "./routes/message.js";
 import OpenAI from "openai";
+import cors from "cors";
 
 dotenv.config();
 connectDB();
@@ -15,6 +16,7 @@ const openai = new OpenAI({
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 const port = process.env.PORT || 8080;
 
